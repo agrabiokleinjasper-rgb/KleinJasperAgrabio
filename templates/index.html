@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student API Interface</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f4f7fb;
+            color: #243047;
+        }
+
+        h1, h2 {
+            color: #174ea6;
+        }
+
+        section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 16px;
+            margin: 5px 0;
+            cursor: pointer;
+            background: #174ea6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        input {
+            padding: 10px;
+        }
+
+        #result, #courseResult {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student API Interface</h1>
+
+    <section>
+        <h2>Student Information</h2>
+        <button onclick="loadStudent()">Load Student Information</button>
+        <div id="result"></div>
+    </section>
+
+    <section>
+        <h2>Greeting API</h2>
+        <input type="text" id="nameInput" placeholder="Enter your first name">
+        <button onclick="sayHello()">Say Hello</button>
+        <p id="greeting"></p>
+    </section>
+
+    <section>
+        <h2>Course Information API</h2>
+        <button onclick="loadCourse()">Load Course Information</button>
+        <div id="courseResult"></div>
+    </section>
+
+    <script>
+        async function loadStudent() {
+            const result = document.getElementById('result');
+            result.textContent = 'Loading...';
+
+            try {
+                const response = await fetch('/student');
+                if (!response.ok) throw new Error('Request failed');
+
+                const data = await response.json();
+
+                result.innerHTML =
+                    '<p><b>Student ID:</b> ' + data.student_id + '</p>' +
+                    '<p><b>Name:</b> ' + data.name + '</p>' +
+                    '<p><b>Program:</b> ' + data.program + '</p>' +
+                    '<p><b>Year:</b> ' + data.year + '</p>' +
+                    '<p><b>Section:</b> ' + data.section + '</p>';
+            } catch (error) {
+                result.textContent = 'Unable to retrieve student information.';
+            }
+        }
+
+        async function sayHello() {
+            const name = document.getElementById('nameInput').value.trim();
+
+            try {
+                const response = await fetch(
+                    '/hello?name=' + encodeURIComponent(name || 'Student')
+                );
+                if (!response.ok) throw new Error('Request failed');
+
+                const data = await response.json();
+                document.getElementById('greeting').textContent = data.message;
+            } catch (error) {
+                document.getElementById('greeting').textContent =
+                    'Unable to retrieve greeting.';
+            }
+        }
+
+        async function loadCourse() {
+            const result = document.getElementById('courseResult');
+            result.textContent = 'Loading...';
+
+            try {
+                const response = await fetch('/course');
+                if (!response.ok) throw new Error('Request failed');
+
+                const data = await response.json();
+
+                result.innerHTML =
+                    '<p><b>Course Code:</b> ' + data.course_code + '</p>' +
+                    '<p><b>Course Name:</b> ' + data.course_name + '</p>' +
+                    '<p><b>Instructor:</b> ' + data.instructor + '</p>';
+            } catch (error) {
+                result.textContent = 'Unable to retrieve course information.';
+            }
+        }
+    </script>
+</body>
+</html>
