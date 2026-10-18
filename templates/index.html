@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 700px;
+            max-width: 800px;
             margin: 40px auto;
             padding: 20px;
             background: #f4f7fb;
@@ -38,17 +38,38 @@
             border-radius: 5px;
         }
 
-        input {
-            padding: 10px;
+        button:hover {
+            background: #103b80;
         }
 
-        #result, #courseResult {
+        input {
+            padding: 10px;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        #result, #courseResult, #studentList, #greeting {
             margin-top: 15px;
             padding: 10px;
             border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow-wrap: anywhere;
+        }
+
+        .student-card {
+            background: #f8fbff;
+            border: 1px solid #d5e2f5;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+        }
+
+        .status {
+            color: #555;
         }
     </style>
 </head>
+
 <body>
     <h1>Student API Interface</h1>
 
@@ -60,7 +81,11 @@
 
     <section>
         <h2>Greeting API</h2>
-        <input type="text" id="nameInput" placeholder="Enter your first name">
+        <input
+            type="text"
+            id="nameInput"
+            placeholder="Enter your first name"
+        >
         <button onclick="sayHello()">Say Hello</button>
         <p id="greeting"></p>
     </section>
@@ -69,6 +94,27 @@
         <h2>Course Information API</h2>
         <button onclick="loadCourse()">Load Course Information</button>
         <div id="courseResult"></div>
+    </section>
+
+    <!-- Activity 7: SQLite database records -->
+    <section>
+        <h2>Students from Database</h2>
+        <p>Load student records stored in the SQLite database.</p>
+        <button onclick="loadStudents()">Load Students</button>
+        <div id="studentList"></div>
+    </section>
+
+    <!-- Activity 7: Additional database endpoint -->
+    <section>
+        <h2>Find Students by Program</h2>
+        <label for="programInput">Program:</label>
+        <input
+            type="text"
+            id="programInput"
+            placeholder="Example: BSIT"
+        >
+        <button onclick="filterStudents()">Search Program</button>
+        <div id="filterResult"></div>
     </section>
 
     <script>
@@ -89,7 +135,8 @@
                     '<p><b>Year:</b> ' + data.year + '</p>' +
                     '<p><b>Section:</b> ' + data.section + '</p>';
             } catch (error) {
-                result.textContent = 'Unable to retrieve student information.';
+                result.textContent =
+                    'Unable to retrieve student information.';
             }
         }
 
@@ -103,7 +150,8 @@
                 if (!response.ok) throw new Error('Request failed');
 
                 const data = await response.json();
-                document.getElementById('greeting').textContent = data.message;
+                document.getElementById('greeting').textContent =
+                    data.message;
             } catch (error) {
                 document.getElementById('greeting').textContent =
                     'Unable to retrieve greeting.';
@@ -125,7 +173,107 @@
                     '<p><b>Course Name:</b> ' + data.course_name + '</p>' +
                     '<p><b>Instructor:</b> ' + data.instructor + '</p>';
             } catch (error) {
-                result.textContent = 'Unable to retrieve course information.';
+                result.textContent =
+                    'Unable to retrieve course information.';
+            }
+        }
+
+        // Load all students from SQLite through Flask API
+        async function loadStudents() {
+            const list = document.getElementById('studentList');
+            list.textContent = 'Loading students...';
+
+            try {
+                const response = await fetch('/students');
+                if (!response.ok) throw new Error('Request failed');
+
+                const students = await response.json();
+
+                if (students.length === 0) {
+                    list.textContent = 'No student records found.';
+                    return;
+                }
+
+                list.innerHTML = '';
+
+                students.forEach(student => {
+                    const card = document.createElement('div');
+                    card.className = 'student-card';
+
+                    const details = [
+                        ['Database ID', student.id],
+                        ['Student ID', student.student_id],
+                        ['Name', student.name],
+                        ['Program', student.program],
+                        ['Year', student.year],
+                        ['Section', student.section]
+                    ];
+
+                    details.forEach(([label, value]) => {
+                        const line = document.createElement('p');
+                        const strong = document.createElement('b');
+
+                        strong.textContent = label + ': ';
+                        line.appendChild(strong);
+                        line.appendChild(
+                            document.createTextNode(String(value))
+                        );
+                        card.appendChild(line);
+                    });
+
+                    list.appendChild(card);
+                });
+            } catch (error) {
+                list.textContent =
+                    'Unable to retrieve student records from the database.';
+                console.error(error);
+            }
+        }
+
+        // Additional endpoint: filter students by program
+        async function filterStudents() {
+            const result = document.getElementById('filterResult');
+            const program =
+                document.getElementById('programInput').value.trim();
+
+            if (!program) {
+                result.textContent = 'Please enter a program, such as BSIT.';
+                return;
+            }
+
+            result.textContent = 'Searching...';
+
+            try {
+                const response = await fetch(
+                    '/filter?program=' + encodeURIComponent(program)
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Search failed');
+                }
+
+                result.innerHTML = '';
+
+                if (data.length === 0) {
+                    result.textContent = 'No matching students found.';
+                    return;
+                }
+
+                data.forEach(student => {
+                    const item = document.createElement('p');
+                    item.textContent =
+                        student.student_id + ' - ' +
+                        student.name + ' - ' +
+                        student.program + ' - Year ' +
+                        student.year + ' - Section ' +
+                        student.section;
+                    result.appendChild(item);
+                });
+            } catch (error) {
+                result.textContent = 'Unable to search student records.';
+                console.error(error);
             }
         }
     </script>
