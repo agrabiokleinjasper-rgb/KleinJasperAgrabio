@@ -2,355 +2,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activity 8 - Student CRUD Application</title>
-
-    <style>
-        * { box-sizing: border-box; }
-
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 20px;
-            background: #f2f6fc;
-            color: #243047;
-        }
-
-        h1, h2 { color: #174ea6; }
-
-        header {
-            background: #174ea6;
-            color: white;
-            padding: 24px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-
-        header h1 { color: white; margin-top: 0; }
-
-        section {
-            background: white;
-            padding: 22px;
-            margin: 20px 0;
-            border: 1px solid #d6deeb;
-            border-radius: 10px;
-        }
-
-        input {
-            width: 100%;
-            max-width: 420px;
-            padding: 11px;
-            margin: 6px 0;
-            border: 1px solid #bbc5d4;
-            border-radius: 6px;
-        }
-
-        button {
-            padding: 10px 15px;
-            margin: 6px 4px 6px 0;
-            background: #174ea6;
-            color: white;
-            border: 0;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        button:hover { opacity: 0.88; }
-        button.edit { background: #16804a; }
-        button.delete { background: #bd2c2c; }
-        button.secondary { background: #586579; }
-
-        .record {
-            border: 1px solid #d6deeb;
-            background: #f8faff;
-            padding: 14px;
-            border-radius: 8px;
-            margin: 12px 0;
-            overflow-wrap: anywhere;
-        }
-
-        .record p { margin: 7px 0; }
-        .status { margin: 12px 0; font-weight: bold; }
-        .muted { color: #586579; font-size: 14px; }
-        .success { color: #16804a; }
-        .error { color: #bd2c2c; }
-
-        .empty {
-            padding: 14px;
-            background: #f8faff;
-            border-radius: 6px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activity 9 - Integration Dashboard</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f6fb;color:#1e293b}
+header{background:#123c70;color:white;padding:25px 5%;box-shadow:0 3px 10px #0002}
+header h1{margin:0 0 8px;font-size:27px}
+header p{margin:0;color:#dbeafe}
+main{max-width:1200px;margin:25px auto;padding:0 18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:15px;margin-bottom:22px}
+.card,.panel{background:white;padding:20px;border-radius:12px;box-shadow:0 3px 12px #1e293b0b}
+.card h3{margin:0 0 10px;color:#475569;font-size:14px}
+.count{font-size:30px;font-weight:bold;color:#123c70}
+.panel{margin-bottom:20px;overflow:hidden}
+.panel h2{margin-top:0;color:#123c70;font-size:20px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+input,select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:7px;margin-bottom:10px}
+button{border:0;border-radius:7px;padding:9px 12px;margin:3px;cursor:pointer;font-weight:bold;background:#e2e8f0;color:#1e293b}
+.primary{background:#1d4ed8;color:white}
+.success{background:#15803d;color:white}
+.danger{background:#b91c1c;color:white}
+.dark{background:#123c70;color:white}
+button:hover{filter:brightness(.94)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th,td{padding:11px;text-align:left;border-bottom:1px solid #e2e8f0;font-size:14px}
+th{background:#eff6ff;color:#1e3a8a}
+.badge{display:inline-block;padding:5px 8px;border-radius:20px;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:bold}
+#status{position:sticky;top:0;padding:12px;text-align:center;display:none;z-index:5}
+.muted{color:#64748b;font-size:13px}
+@media(max-width:600px){header h1{font-size:22px}.panel{padding:13px}}
+</style>
 </head>
-
 <body>
 <header>
-    <h1>Student CRUD Application</h1>
-    <p>Laboratory Activity 8</p>
-    <p>Create, Read, Update, Delete, and retrieve classmate API records.</p>
+  <h1>System-to-System Integration Dashboard</h1>
+  <p>Laboratory Activity 9 · View, Save, Send, and Retrieve Data</p>
 </header>
 
-<section>
-    <h2>1. Student Form — Create and Update</h2>
-    <p class="muted">
-        Fill in all fields to add a student. Click Edit on a record below
-        to load its details into this form.
-    </p>
+<div id="status"></div>
 
+<main>
+  <div class="cards">
+    <div class="card"><h3>My Local Records</h3><div class="count" id="localCount">0</div></div>
+    <div class="card"><h3>Imported Records</h3><div class="count" id="importCount">0</div></div>
+    <div class="card"><h3>Partner Records</h3><div class="count" id="partnerCount">0</div></div>
+  </div>
+
+  <section class="panel">
+    <h2>Add a Local Student</h2>
     <form id="studentForm">
-        <input type="hidden" id="recordId">
-
-        <label for="student_id">Student ID</label><br>
-        <input id="student_id" placeholder="e.g. 2026-00128" required><br>
-
-        <label for="name">Full Name</label><br>
-        <input id="name" placeholder="Enter full name" required><br>
-
-        <label for="program">Program</label><br>
-        <input id="program" placeholder="e.g. BSIT" required><br>
-
-        <label for="year">Year Level</label><br>
-        <input id="year" type="number" min="1" max="6"
-               placeholder="e.g. 3" required><br>
-
-        <label for="section">Section</label><br>
-        <input id="section" placeholder="e.g. A" required><br>
-
-        <button type="submit" id="saveButton">Add Student</button>
-        <button type="button" class="secondary" onclick="resetForm()">
-            Clear Form
-        </button>
+      <input type="hidden" id="editId">
+      <div class="form-grid">
+        <input id="student_id" placeholder="Student ID" required>
+        <input id="name" placeholder="Full name" required>
+        <input id="program" placeholder="Program (e.g. BSIT)" required>
+        <input id="year" type="number" min="1" max="10" placeholder="Year" required>
+        <input id="section" placeholder="Section" required>
+      </div>
+      <button class="primary" type="submit" id="submitBtn">Add Student</button>
+      <button type="button" onclick="resetForm()">Clear</button>
     </form>
+  </section>
 
-    <div id="formStatus" class="status" role="status"></div>
-</section>
-
-<section>
-    <h2>2. My Student Records — Read and Delete</h2>
-    <button type="button" onclick="loadStudents()">Refresh Records</button>
-    <div id="myRecords" aria-live="polite">
-        Loading student records...
+  <section class="panel">
+    <h2>My Records</h2>
+    <p class="muted">Local and imported records saved in your own database.</p>
+    <button class="primary" onclick="loadMyRecords()">Refresh My Records</button>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Student ID</th><th>Name</th><th>Program</th><th>Year</th><th>Section</th><th>Source</th><th>Actions</th></tr></thead>
+        <tbody id="myRecords"><tr><td colspan="8">Loading records...</td></tr></tbody>
+      </table>
     </div>
-</section>
+  </section>
 
-<section>
-    <h2>3. Classmate's Records — External API</h2>
-    <p class="muted">
-        This section retrieves read-only records through your Flask server.
-        It does not edit or delete your classmate's data.
-    </p>
-
-    <p>Classmate API: <code>balcenajessicaann.onrender.com</code></p>
-
-    <button type="button" onclick="loadClassmateRecords()">
-        Load Classmate's Records
-    </button>
-
-    <div id="classmateStatus" class="status" role="status"></div>
-    <div id="classmateRecords" aria-live="polite">
-        Click the button to retrieve classmate records.
+  <section class="panel">
+    <h2>Partner Records</h2>
+    <p class="muted">Retrieve records from your partner's deployed API. Save only the practice record you choose.</p>
+    <button class="primary" onclick="loadPartnerRecords()">Retrieve Partner Records</button>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student ID</th><th>Name</th><th>Program</th><th>Year</th><th>Section</th><th>Actions</th></tr></thead>
+        <tbody id="partnerRecords"><tr><td colspan="6">Click Retrieve Partner Records.</td></tr></tbody>
+      </table>
     </div>
-</section>
+  </section>
+
+  <section class="panel">
+    <h2>Send a Practice Record to Partner</h2>
+    <p class="muted">Coordinate with your partner before sending. Use fictional practice data only.</p>
+    <div class="form-grid">
+      <input id="sendId" value="EXT-001" placeholder="Practice Student ID">
+      <input id="sendName" value="Sample Exchange Record" placeholder="Fictional name">
+      <input id="sendProgram" value="BSIT" placeholder="Program">
+      <input id="sendYear" type="number" value="1" min="1" max="10" placeholder="Year">
+      <input id="sendSection" value="A" placeholder="Section">
+    </div>
+    <button class="success" onclick="sendToPartner()">Send Practice Record</button>
+  </section>
+
+  <section class="panel">
+    <h2>API Links</h2>
+    <p><a href="/students" target="_blank">My Records JSON (/students)</a></p>
+    <p><a href="/api/students" target="_blank">API Students JSON (/api/students)</a></p>
+    <p><a href="/partner-records" target="_blank">Partner Records Endpoint (/partner-records)</a></p>
+  </section>
+</main>
 
 <script>
-    const byId = id => document.getElementById(id);
+let partnerData = [];
 
-    function escapeHTML(value) {
-        return String(value ?? "").replace(/[&<>"']/g, char => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;"
-        })[char]);
+function message(text, error=false) {
+  const box = document.getElementById("status");
+  box.textContent = text;
+  box.style.display = "block";
+  box.style.background = error ? "#fee2e2" : "#dcfce7";
+  box.style.color = error ? "#991b1b" : "#166534";
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+async function api(url, options={}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {"Content-Type":"application/json", ...(options.headers || {})}
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || data.message || `HTTP ${response.status}`);
+  return data;
+}
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[ch]));
+}
+
+async function loadMyRecords() {
+  try {
+    const records = await api("/api/students");
+    document.getElementById("localCount").textContent =
+      records.filter(r => r.source === "Local").length;
+    document.getElementById("importCount").textContent =
+      records.filter(r => r.source !== "Local").length;
+
+    const body = document.getElementById("myRecords");
+    if (!records.length) {
+      body.innerHTML = '<tr><td colspan="8">No records found.</td></tr>';
+      return;
     }
 
-    function setStatus(id, message, isError = false) {
-        const element = byId(id);
-        element.textContent = message;
-        element.className = "status " + (isError ? "error" : "success");
+    body.innerHTML = records.map(r => `
+      <tr>
+        <td>${r.id}</td>
+        <td>${esc(r.student_id)}</td>
+        <td>${esc(r.name)}</td>
+        <td>${esc(r.program)}</td>
+        <td>${esc(r.year)}</td>
+        <td>${esc(r.section)}</td>
+        <td><span class="badge">${esc(r.source || "Local")}</span></td>
+        <td>
+          <button onclick="viewStudent(${r.id})">View</button>
+          <button class="primary" onclick="editStudent(${r.id})">Edit</button>
+          <button class="danger" onclick="deleteStudent(${r.id})">Delete</button>
+        </td>
+      </tr>`).join("");
+  } catch (e) {
+    message("Unable to load your records: " + e.message, true);
+  }
+}
+
+async function loadPartnerRecords() {
+  const body = document.getElementById("partnerRecords");
+  body.innerHTML = '<tr><td colspan="6">Retrieving partner records...</td></tr>';
+  try {
+    const result = await api("/partner-records");
+    partnerData = result.records || [];
+    document.getElementById("partnerCount").textContent = partnerData.length;
+
+    if (!partnerData.length) {
+      body.innerHTML = '<tr><td colspan="6">No partner records returned. Check the partner API.</td></tr>';
+      return;
     }
 
-    function renderRecord(student, editable) {
-        const id = Number(student.id);
-        const controls = editable && Number.isInteger(id) && id > 0
-            ? `<button type="button" class="edit" data-edit="${id}">Edit</button>
-               <button type="button" class="delete" data-delete="${id}">Delete</button>`
-            : "";
+    body.innerHTML = partnerData.map((r, i) => `
+      <tr>
+        <td>${esc(r.student_id ?? r.id ?? "N/A")}</td>
+        <td>${esc(r.name ?? r.fullname ?? "N/A")}</td>
+        <td>${esc(r.program ?? "N/A")}</td>
+        <td>${esc(r.year ?? "N/A")}</td>
+        <td>${esc(r.section ?? "N/A")}</td>
+        <td>
+          <button onclick="viewPartner(${i})">View</button>
+          <button class="success" onclick="savePartner(${i})">Save to My Database</button>
+        </td>
+      </tr>`).join("");
+    message("Retrieved " + partnerData.length + " partner record(s).");
+  } catch (e) {
+    body.innerHTML = '<tr><td colspan="6">Could not retrieve partner records.</td></tr>';
+    message("Partner API error: " + e.message, true);
+  }
+}
 
-        return `
-            <div class="record">
-                <p><b>Database ID:</b> ${escapeHTML(student.id)}</p>
-                <p><b>Student ID:</b> ${escapeHTML(student.student_id)}</p>
-                <p><b>Name:</b> ${escapeHTML(student.name)}</p>
-                <p><b>Program:</b> ${escapeHTML(student.program)}</p>
-                <p><b>Year:</b> ${escapeHTML(student.year)}</p>
-                <p><b>Section:</b> ${escapeHTML(student.section)}</p>
-                ${controls}
-            </div>
-        `;
-    }
+function normalizedPartner(record) {
+  return {
+    student_id: record.student_id ?? record.id ?? "",
+    name: record.name ?? record.fullname ?? "",
+    program: record.program ?? "",
+    year: record.year,
+    section: record.section ?? ""
+  };
+}
 
-    async function readJSON(response) {
-        let data;
-        try {
-            data = await response.json();
-        } catch {
-            throw new Error("The server did not return valid JSON.");
-        }
+function viewPartner(index) {
+  const r = normalizedPartner(partnerData[index]);
+  alert("Partner Record\n\nStudent ID: " + r.student_id +
+    "\nName: " + r.name + "\nProgram: " + r.program +
+    "\nYear: " + r.year + "\nSection: " + r.section);
+}
 
-        if (!response.ok) {
-            throw new Error(data.error || `Request failed (${response.status})`);
-        }
-
-        return data;
-    }
-
-    // READ: load all local database records
-    async function loadStudents() {
-        const container = byId("myRecords");
-        container.textContent = "Loading records...";
-
-        try {
-            const response = await fetch("/students");
-            const data = await readJSON(response);
-
-            if (!Array.isArray(data)) {
-                throw new Error("Unexpected student records format.");
-            }
-
-            container.innerHTML = data.length
-                ? data.map(student => renderRecord(student, true)).join("")
-                : '<p class="empty">No student records found.</p>';
-        } catch (error) {
-            container.textContent = "Unable to load records: " + error.message;
-        }
-    }
-
-    function resetForm() {
-        byId("studentForm").reset();
-        byId("recordId").value = "";
-        byId("saveButton").textContent = "Add Student";
-        byId("formStatus").textContent = "";
-    }
-
-    // CREATE and UPDATE
-    byId("studentForm").addEventListener("submit", async event => {
-        event.preventDefault();
-
-        const id = byId("recordId").value;
-        const student = {
-            student_id: byId("student_id").value.trim(),
-            name: byId("name").value.trim(),
-            program: byId("program").value.trim(),
-            year: Number(byId("year").value),
-            section: byId("section").value.trim()
-        };
-
-        const url = id
-            ? `/api/students/${encodeURIComponent(id)}`
-            : "/api/students";
-
-        const method = id ? "PUT" : "POST";
-        byId("saveButton").disabled = true;
-
-        try {
-            const response = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(student)
-            });
-
-            const result = await readJSON(response);
-            setStatus("formStatus", result.message || "Operation successful.");
-            resetForm();
-            await loadStudents();
-        } catch (error) {
-            setStatus("formStatus", "Error: " + error.message, true);
-        } finally {
-            byId("saveButton").disabled = false;
-        }
+async function savePartner(index) {
+  const record = normalizedPartner(partnerData[index]);
+  if (!record.student_id || !record.name || !record.program ||
+      record.year === undefined || record.year === null || !record.section) {
+    message("This partner record is missing required student fields and cannot be imported.", true);
+    return;
+  }
+  if (!confirm("Save " + record.name + " to your database?")) return;
+  try {
+    const result = await api("/import-student", {
+      method:"POST", body:JSON.stringify(record)
     });
+    message(result.message + ". Source: " + result.source);
+    await loadMyRecords();
+  } catch (e) {
+    message("Import failed: " + e.message, true);
+  }
+}
 
-    // EDIT and DELETE buttons
-    byId("myRecords").addEventListener("click", async event => {
-        const editId = event.target.dataset.edit;
-        const deleteId = event.target.dataset.delete;
+async function viewStudent(id) {
+  try {
+    const r = await api("/api/students/" + id);
+    alert("Student Record\n\nID: " + r.id + "\nStudent ID: " + r.student_id +
+      "\nName: " + r.name + "\nProgram: " + r.program +
+      "\nYear: " + r.year + "\nSection: " + r.section +
+      "\nSource: " + (r.source || "Local"));
+  } catch (e) { message(e.message, true); }
+}
 
-        if (editId) {
-            try {
-                const response = await fetch(`/api/students/${editId}`);
-                const student = await readJSON(response);
+async function editStudent(id) {
+  try {
+    const r = await api("/api/students/" + id);
+    document.getElementById("editId").value = r.id;
+    document.getElementById("student_id").value = r.student_id;
+    document.getElementById("name").value = r.name;
+    document.getElementById("program").value = r.program;
+    document.getElementById("year").value = r.year;
+    document.getElementById("section").value = r.section;
+    document.getElementById("submitBtn").textContent = "Update Student";
+    document.getElementById("studentForm").scrollIntoView({behavior:"smooth"});
+  } catch (e) { message(e.message, true); }
+}
 
-                byId("recordId").value = student.id;
-                byId("student_id").value = student.student_id ?? "";
-                byId("name").value = student.name ?? "";
-                byId("program").value = student.program ?? "";
-                byId("year").value = student.year ?? "";
-                byId("section").value = student.section ?? "";
-                byId("saveButton").textContent = "Update Student";
+function resetForm() {
+  document.getElementById("studentForm").reset();
+  document.getElementById("editId").value = "";
+  document.getElementById("submitBtn").textContent = "Add Student";
+}
 
-                setStatus("formStatus", "Editing student record #" + student.id);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            } catch (error) {
-                setStatus("formStatus", "Error: " + error.message, true);
-            }
-        }
+document.getElementById("studentForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const id = document.getElementById("editId").value;
+  const record = {
+    student_id: document.getElementById("student_id").value.trim(),
+    name: document.getElementById("name").value.trim(),
+    program: document.getElementById("program").value.trim(),
+    year: Number(document.getElementById("year").value),
+    section: document.getElementById("section").value.trim()
+  };
 
-        if (deleteId && confirm("Delete this student record?")) {
-            try {
-                const response = await fetch(`/api/students/${deleteId}`, {
-                    method: "DELETE"
-                });
-                const result = await readJSON(response);
-
-                setStatus("formStatus", result.message || "Student deleted.");
-                await loadStudents();
-            } catch (error) {
-                setStatus("formStatus", "Error: " + error.message, true);
-            }
-        }
+  try {
+    const result = await api(id ? "/api/students/" + id : "/api/students", {
+      method: id ? "PUT" : "POST",
+      body: JSON.stringify(id ? record : {...record, source:"Local"})
     });
+    message(result.message || "Saved successfully.");
+    resetForm();
+    await loadMyRecords();
+  } catch (e) { message("Save failed: " + e.message, true); }
+});
 
-    // READ: retrieve classmate records through our Flask proxy
-    async function loadClassmateRecords() {
-        const container = byId("classmateRecords");
-        container.textContent = "Retrieving classmate records...";
-        byId("classmateStatus").textContent = "";
+async function deleteStudent(id) {
+  if (!confirm("Are you sure you want to delete this record?")) return;
+  try {
+    const result = await api("/api/students/" + id, {method:"DELETE"});
+    message(result.message);
+    await loadMyRecords();
+  } catch (e) { message(e.message, true); }
+}
 
-        try {
-            const response = await fetch("/api/classmate-records");
-            const data = await readJSON(response);
+async function sendToPartner() {
+  if (!confirm("Have you coordinated this test with your partner? Send the fictional practice record now?")) return;
 
-            const records = Array.isArray(data)
-                ? data
-                : (data.students || data.records || null);
+  const record = {
+    student_id: document.getElementById("sendId").value.trim(),
+    name: document.getElementById("sendName").value.trim(),
+    program: document.getElementById("sendProgram").value.trim(),
+    year: Number(document.getElementById("sendYear").value),
+    section: document.getElementById("sendSection").value.trim()
+  };
 
-            if (!Array.isArray(records)) {
-                throw new Error(
-                    "The classmate API response is not a student list. Check its endpoint and response format."
-                );
-            }
+  try {
+    const result = await api("/send-to-partner", {
+      method:"POST", body:JSON.stringify(record)
+    });
+    message("Partner API responded with HTTP " + result.status_code +
+      ". Check with your partner to confirm the record was saved.");
+  } catch (e) {
+    message("Send failed: " + e.message, true);
+  }
+}
 
-            container.innerHTML = records.length
-                ? records.map(student => renderRecord(student, false)).join("")
-                : '<p class="empty">The classmate API returned no records.</p>';
-
-            setStatus("classmateStatus", "Classmate API records loaded (read-only).");
-        } catch (error) {
-            container.textContent = "Unable to retrieve classmate records: " + error.message;
-            setStatus(
-                "classmateStatus",
-                "Check the classmate API endpoint and server availability.",
-                true
-            );
-        }
-    }
-
-    // Load local records when the page opens
-    loadStudents();
+loadMyRecords();
 </script>
 </body>
 </html>
